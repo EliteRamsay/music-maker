@@ -11,27 +11,29 @@
 #include <algorithm>
 #include <iomanip>
 
+using namespace std;
+
 struct Note {
-    std::string name;
+    string name;
     int freq;
     int duration;
 };
 
 struct Measure {
-    std::string chord;
-    std::vector<Note> notes;
+    string chord;
+    vector<Note> notes;
     int measureNumber;
-    std::string section;
+    string section;
     int duration;  // Custom duration for this measure
 };
 
 struct MusicSection {
-    std::string name;
-    std::vector<Measure> measures;
+    string name;
+    vector<Measure> measures;
 };
 
 // Complete note frequencies from Octave 0 to Octave 8
-std::map<std::string, int> noteFrequencies = {
+map<string, int> noteFrequencies = {
     // Octave 0
     {"C0", 16}, {"C#0", 17}, {"D0", 18}, {"D#0", 19}, {"E0", 21}, {"F0", 22}, {"F#0", 23}, {"G0", 25}, {"G#0", 26}, {"A0", 28}, {"A#0", 29}, {"B0", 31},
     
@@ -61,7 +63,7 @@ std::map<std::string, int> noteFrequencies = {
 };
 
 // Common chord definitions
-std::map<std::string, std::vector<std::string>> chordDefinitions = {
+map<string, vector<string>> chordDefinitions = {
     {"CMAJ7", {"C4", "E4", "G4", "B4"}},
     {"GMAJ7", {"G4", "B4", "D5", "F#5"}},
     {"D6", {"D4", "F#4", "A4", "B4"}},
@@ -83,27 +85,27 @@ std::map<std::string, std::vector<std::string>> chordDefinitions = {
     {"B7", {"B4", "D#5", "F#5", "A5"}}
 };
 
-std::vector<MusicSection> songSections;
-std::string currentSection = "A";
+vector<MusicSection> songSections;
+string currentSection = "A";
 
 void showMenu() {
-    std::cout << "\n==== C++ Terminal Music Composer ====\n";
-    std::cout << "1. Add measure to current section\n";
-    std::cout << "2. Play current section\n";
-    std::cout << "3. Play entire song\n";
-    std::cout << "4. Save song\n";
-    std::cout << "5. Load song\n";
-    std::cout << "6. Generate random section\n";
-    std::cout << "7. Exit\n";
-    std::cout << "8. List all available notes\n";
-    std::cout << "9. Show common chords\n";
-    std::cout << "10. Print music sheet\n";
-    std::cout << "11. Add new section\n";
-    std::cout << "12. Switch section\n";
-    std::cout << "13. Add chord by name\n";
-    std::cout << "-------------------------------------\n";
-    std::cout << "Current Section: " << currentSection << "\n";
-    std::cout << "Choice: ";
+    cout << "\n==== C++ Terminal Music Composer ====\n";
+    cout << "1. Add measure to current section\n";
+    cout << "2. Play current section\n";
+    cout << "3. Play entire song\n";
+    cout << "4. Save song\n";
+    cout << "5. Load song\n";
+    cout << "6. Generate random section\n";
+    cout << "7. Exit\n";
+    cout << "8. List all available notes\n";
+    cout << "9. Show common chords\n";
+    cout << "10. Print music sheet\n";
+    cout << "11. Add new section\n";
+    cout << "12. Switch section\n";
+    cout << "13. Add chord by name\n";
+    cout << "-------------------------------------\n";
+    cout << "Current Section: " << currentSection << "\n";
+    cout << "Choice: ";
 }
 
 MusicSection* getCurrentSection() {
@@ -121,59 +123,54 @@ MusicSection* getCurrentSection() {
 
 void printMusicSheet() {
     if (songSections.empty()) {
-        std::cout << "No music to display!\n";
+        cout << "No music to display!\n";
         return;
     }
     
-    std::cout << "\n";
-    std::cout << "===============================================\n";
-    std::cout << "               MUSIC SHEET\n";
-    std::cout << "===============================================\n";
+    cout << "\n";
+    cout << "===============================================\n";
+    cout << "               MUSIC SHEET\n";
+    cout << "===============================================\n";
     
     for (const auto& section : songSections) {
-        std::cout << "\nSection " << section.name << "\n";
-        std::cout << std::string(60, '-') << "\n";
-        std::cout << std::left << std::setw(8) << "Measure" 
-                  << std::setw(12) << "Chord" 
-                  << std::setw(10) << "Duration"
-                  << "Notes\n";
-        std::cout << std::string(60, '-') << "\n";
+        cout << "\nSection " << section.name << "\n";
+        cout << string(60, '-') << "\n";
+        cout << left << setw(8) << "Measure" << setw(12) << "Chord" << setw(10) << "Duration" << "Notes\n";
+        cout << string(60, '-') << "\n";
         
         for (const auto& measure : section.measures) {
-            std::cout << std::setw(8) << measure.measureNumber
-                      << std::setw(12) << measure.chord
-                      << std::setw(10) << (std::to_string(measure.duration) + "ms");
+            cout << setw(8) << measure.measureNumber << setw(12) << measure.chord << setw(10) << (to_string(measure.duration) + "ms");
             
             // Print notes
             for (size_t i = 0; i < measure.notes.size(); ++i) {
-                std::cout << measure.notes[i].name;
+                cout << measure.notes[i].name;
                 if (i < measure.notes.size() - 1) {
-                    std::cout << " ";
+                    cout << " ";
                 }
             }
-            std::cout << "\n";
+            cout << "\n";
         }
     }
-    std::cout << "===============================================\n";
+    cout << "===============================================\n";
 }
 
 void listCommonChords() {
-    std::cout << "\nCommon Chords Available:\n";
-    std::cout << "=======================\n";
+    cout << "\nCommon Chords Available:\n";
+    cout << "=======================\n";
     int count = 0;
     for (const auto& chord : chordDefinitions) {
-        std::cout << chord.first << "\t";
+        cout << chord.first << "\t";
         count++;
-        if (count % 4 == 0) std::cout << "\n";
+        if (count % 4 == 0) cout << "\n";
     }
-    std::cout << "\n\nUse these chord names when adding measures.\n";
+    cout << "\n\nUse these chord names when adding measures.\n";
 }
 
 void addChordByName() {
     listCommonChords();
-    std::cout << "\nEnter chord name (e.g., GMAJ7, AMIN, C7): ";
-    std::string chordName;
-    std::cin >> chordName;
+    cout << "\nEnter chord name (e.g., GMAJ7, AMIN, C7): ";
+    string chordName;
+    cin >> chordName;
     
     // Convert to uppercase
     for (char& c : chordName) {
@@ -181,14 +178,14 @@ void addChordByName() {
     }
     
     if (chordDefinitions.find(chordName) == chordDefinitions.end()) {
-        std::cout << "Chord not found! Available chords:\n";
+        cout << "Chord not found! Available chords:\n";
         listCommonChords();
         return;
     }
     
     int duration;
-    std::cout << "Enter duration in milliseconds: ";
-    std::cin >> duration;
+    cout << "Enter duration in milliseconds: ";
+    cin >> duration;
     
     MusicSection* current = getCurrentSection();
     Measure newMeasure;
@@ -207,8 +204,7 @@ void addChordByName() {
     }
     
     current->measures.push_back(newMeasure);
-    std::cout << "Added " << chordName << " chord to Section " << currentSection 
-              << ", Measure " << newMeasure.measureNumber << " (" << duration << "ms)\n";
+    cout << "Added " << chordName << " chord to Section " << currentSection << ", Measure " << newMeasure.measureNumber << " (" << duration << "ms)\n";
 }
 
 void addMeasure() {
@@ -217,22 +213,22 @@ void addMeasure() {
     newMeasure.measureNumber = current->measures.size() + 1;
     newMeasure.section = currentSection;
     
-    std::cout << "\nAdding Measure " << newMeasure.measureNumber << " to Section " << currentSection << "\n";
+    cout << "\nAdding Measure " << newMeasure.measureNumber << " to Section " << currentSection << "\n";
     
     // Get chord name
-    std::cout << "Enter chord name (e.g., Gmaj7, D6): ";
-    std::cin.ignore();
-    std::getline(std::cin, newMeasure.chord);
+    cout << "Enter chord name (e.g., Gmaj7, D6): ";
+    cin.ignore();
+    getline(cin, newMeasure.chord);
     
     // Get duration
-    std::cout << "Enter duration in milliseconds (e.g., 500): ";
-    std::cin >> newMeasure.duration;
-    std::cin.ignore(); // clear the newline
+    cout << "Enter duration in milliseconds (e.g., 500): ";
+    cin >> newMeasure.duration;
+    cin.ignore(); // clear the newline
     
     // Get notes
-    std::cout << "Enter notes separated by commas (e.g., G4,B4,D5,F#5): ";
-    std::string input;
-    std::getline(std::cin, input);
+    cout << "Enter notes separated by commas (e.g., G4,B4,D5,F#5): ";
+    string input;
+    getline(cin, input);
     
     // Convert to uppercase for note names
     for (size_t i = 0; i < input.length(); ++i) {
@@ -242,10 +238,10 @@ void addMeasure() {
     }
     
     // Parse notes
-    std::stringstream ss(input);
-    std::string noteName;
-    while (std::getline(ss, noteName, ',')) {
-        noteName.erase(std::remove_if(noteName.begin(), noteName.end(), ::isspace), noteName.end());
+    stringstream ss(input);
+    string noteName;
+    while (getline(ss, noteName, ',')) {
+        noteName.erase(remove_if(noteName.begin(), noteName.end(), ::isspace), noteName.end());
         
         if (noteFrequencies.find(noteName) != noteFrequencies.end()) {
             Note n;
@@ -254,17 +250,17 @@ void addMeasure() {
             n.duration = newMeasure.duration;
             newMeasure.notes.push_back(n);
         } else {
-            std::cout << "Invalid note: " << noteName << " - skipping.\n";
+            cout << "Invalid note: " << noteName << " - skipping.\n";
         }
     }
     
     if (newMeasure.notes.empty()) {
-        std::cout << "No valid notes entered. Measure not added.\n";
+        cout << "No valid notes entered. Measure not added.\n";
         return;
     }
     
     current->measures.push_back(newMeasure);
-    std::cout << "Added Measure " << newMeasure.measureNumber << " to Section " << currentSection 
+    cout << "Added Measure " << newMeasure.measureNumber << " to Section " << currentSection 
               << " (" << newMeasure.duration << "ms)\n";
 }
 
@@ -278,7 +274,7 @@ void playNote(int frequency, int duration) {
     }
 }
 
-void playSection(const std::string& sectionName) {
+void playSection(const string& sectionName) {
     MusicSection* section = nullptr;
     for (auto& s : songSections) {
         if (s.name == sectionName) {
@@ -288,26 +284,25 @@ void playSection(const std::string& sectionName) {
     }
     
     if (!section || section->measures.empty()) {
-        std::cout << "Section " << sectionName << " is empty or doesn't exist!\n";
+        cout << "Section " << sectionName << " is empty or doesn't exist!\n";
         return;
     }
     
-    std::cout << "\nPlaying Section " << sectionName << "...\n";
-    std::cout << "===================\n";
+    cout << "\nPlaying Section " << sectionName << "...\n";
+    cout << "===================\n";
     
     for (const auto& measure : section->measures) {
-        std::cout << "Section " << measure.section << " - Measure " << measure.measureNumber 
-                  << " - " << measure.chord << " (" << measure.duration << "ms): ";
+        cout << "Section " << measure.section << " - Measure " << measure.measureNumber << " - " << measure.chord << " (" << measure.duration << "ms): ";
         
         for (const auto& note : measure.notes) {
-            std::cout << note.name << " ";
+            cout << note.name << " ";
         }
-        std::cout << "\n";
+        cout << "\n";
         
         // Play chord (all notes simultaneously)
-        std::vector<std::thread> threads;
+        vector<thread> threads;
         for (const auto& note : measure.notes) {
-            threads.push_back(std::thread(playNote, note.freq, note.duration));
+            threads.push_back(thread(playNote, note.freq, note.duration));
         }
         
         for (auto& th : threads) {
@@ -318,33 +313,33 @@ void playSection(const std::string& sectionName) {
         
         Sleep(100); // Gap between measures
     }
-    std::cout << "Finished Section " << sectionName << "!\n";
+    cout << "Finished Section " << sectionName << "!\n";
 }
 
 void playEntireSong() {
     if (songSections.empty()) {
-        std::cout << "No song to play!\n";
+        cout << "No song to play!\n";
         return;
     }
     
-    std::cout << "\nPlaying Entire Song...\n";
-    std::cout << "=====================\n";
+    cout << "\nPlaying Entire Song...\n";
+    cout << "=====================\n";
     
     for (const auto& section : songSections) {
-        std::cout << "\n>>> SECTION " << section.name << " <<<\n";
+        cout << "\n>>> SECTION " << section.name << " <<<\n";
         for (const auto& measure : section.measures) {
-            std::cout << "Measure " << measure.measureNumber << " - " << measure.chord 
+            cout << "Measure " << measure.measureNumber << " - " << measure.chord 
                       << " (" << measure.duration << "ms): ";
             
             for (const auto& note : measure.notes) {
-                std::cout << note.name << " ";
+                cout << note.name << " ";
             }
-            std::cout << "\n";
+            cout << "\n";
             
             // Play chord
-            std::vector<std::thread> threads;
+            vector<thread> threads;
             for (const auto& note : measure.notes) {
-                threads.push_back(std::thread(playNote, note.freq, note.duration));
+                threads.push_back(thread(playNote, note.freq, note.duration));
             }
             
             for (auto& th : threads) {
@@ -356,16 +351,16 @@ void playEntireSong() {
             Sleep(100);
         }
     }
-    std::cout << "\nSong finished!\n";
+    cout << "\nSong finished!\n";
 }
 
 void addNewSection() {
-    std::cout << "Enter new section name (single character, e.g., A, B, C): ";
-    std::string newSection;
-    std::cin >> newSection;
+    cout << "Enter new section name (single character, e.g., A, B, C): ";
+    string newSection;
+    cin >> newSection;
     
     if (newSection.length() != 1 || !isalpha(newSection[0])) {
-        std::cout << "Invalid section name. Use single letters like A, B, C.\n";
+        cout << "Invalid section name. Use single letters like A, B, C.\n";
         return;
     }
     
@@ -375,7 +370,7 @@ void addNewSection() {
     // Check if section already exists
     for (const auto& section : songSections) {
         if (section.name == newSection) {
-            std::cout << "Switched to existing Section " << newSection << "\n";
+            cout << "Switched to existing Section " << newSection << "\n";
             return;
         }
     }
@@ -384,40 +379,40 @@ void addNewSection() {
     MusicSection newSec;
     newSec.name = newSection;
     songSections.push_back(newSec);
-    std::cout << "Created and switched to Section " << newSection << "\n";
+    cout << "Created and switched to Section " << newSection << "\n";
 }
 
 void switchSection() {
     if (songSections.empty()) {
-        std::cout << "No sections exist yet. Create one first.\n";
+        cout << "No sections exist yet. Create one first.\n";
         return;
     }
     
-    std::cout << "Available sections: ";
+    cout << "Available sections: ";
     for (const auto& section : songSections) {
-        std::cout << section.name << " ";
+        cout << section.name << " ";
     }
-    std::cout << "\nEnter section to switch to: ";
+    cout << "\nEnter section to switch to: ";
     
-    std::string sectionName;
-    std::cin >> sectionName;
+    string sectionName;
+    cin >> sectionName;
     sectionName[0] = toupper(sectionName[0]);
     
     for (const auto& section : songSections) {
         if (section.name == sectionName) {
             currentSection = sectionName;
-            std::cout << "Switched to Section " << sectionName << "\n";
+            cout << "Switched to Section " << sectionName << "\n";
             return;
         }
     }
     
-    std::cout << "Section " << sectionName << " not found.\n";
+    cout << "Section " << sectionName << " not found.\n";
 }
 
 void saveSong() {
-    std::ofstream file("song_sheet.txt");
+    ofstream file("song_sheet.txt");
     if (!file) {
-        std::cout << "Error saving song.\n";
+        cout << "Error saving song.\n";
         return;
     }
     
@@ -432,46 +427,46 @@ void saveSong() {
             file << "|" << measure.duration << "\n";
         }
     }
-    std::cout << "Song saved to song_sheet.txt\n";
+    cout << "Song saved to song_sheet.txt\n";
 }
 
 void loadSong() {
-    std::ifstream file("song_sheet.txt");
+    ifstream file("song_sheet.txt");
     if (!file) {
-        std::cout << "Error loading song.\n";
+        cout << "Error loading song.\n";
         return;
     }
     
     songSections.clear();
-    std::string line;
+    string line;
     MusicSection* currentSectionPtr = nullptr;
     
-    while (std::getline(file, line)) {
+    while (getline(file, line)) {
         if (line.find("[SECTION") == 0) {
             MusicSection newSection;
             newSection.name = line.substr(9, 1); // Get section letter
             songSections.push_back(newSection);
             currentSectionPtr = &songSections.back();
         } else if (currentSectionPtr && !line.empty()) {
-            std::stringstream ss(line);
-            std::string part;
-            std::vector<std::string> parts;
+            stringstream ss(line);
+            string part;
+            vector<string> parts;
             
-            while (std::getline(ss, part, '|')) {
+            while (getline(ss, part, '|')) {
                 parts.push_back(part);
             }
             
             if (parts.size() >= 4) {
                 Measure measure;
-                measure.measureNumber = std::stoi(parts[0]);
+                measure.measureNumber = stoi(parts[0]);
                 measure.chord = parts[1];
                 measure.section = currentSectionPtr->name;
-                measure.duration = std::stoi(parts[3]);
+                measure.duration = stoi(parts[3]);
                 
                 // Parse notes
-                std::stringstream noteStream(parts[2]);
-                std::string noteName;
-                while (std::getline(noteStream, noteName, ',')) {
+                stringstream noteStream(parts[2]);
+                string noteName;
+                while (getline(noteStream, noteName, ',')) {
                     if (noteFrequencies.find(noteName) != noteFrequencies.end()) {
                         Note n;
                         n.name = noteName;
@@ -486,29 +481,29 @@ void loadSong() {
         }
     }
     
-    std::cout << "Song loaded! " << songSections.size() << " sections.\n";
+    cout << "Song loaded! " << songSections.size() << " sections.\n";
 }
 
 void listAllNotes() {
-    std::cout << "\nAll Available Notes (Octaves 0-8, format: NoteOctave, e.g., C#4, A5):\n";
-    std::cout << "======================================================================\n";
+    cout << "\nAll Available Notes (Octaves 0-8, format: NoteOctave, e.g., C#4, A5):\n";
+    cout << "======================================================================\n";
     
-    std::vector<std::string> octaves = {"3", "4", "5", "6"}; // Most useful range
-    std::vector<std::string> noteNames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+    vector<string> octaves = {"3", "4", "5", "6"}; // Most useful range
+    vector<string> noteNames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
     
     for (const auto& octave : octaves) {
-        std::cout << "\nOctave " << octave << ":\n";
-        std::cout << "---------\n";
+        cout << "\nOctave " << octave << ":\n";
+        cout << "---------\n";
         for (const auto& noteName : noteNames) {
-            std::string fullNote = noteName + octave;
+            string fullNote = noteName + octave;
             if (noteFrequencies.find(fullNote) != noteFrequencies.end()) {
-                std::cout << fullNote << " (" << noteFrequencies[fullNote] << " Hz)\t";
+                cout << fullNote << " (" << noteFrequencies[fullNote] << " Hz)\t";
                 if (noteName == "D#" || noteName == "F#" || noteName == "A#") {
-                    std::cout << "\n";
+                    cout << "\n";
                 }
             }
         }
-        std::cout << "\n";
+        cout << "\n";
     }
 }
 
@@ -516,29 +511,29 @@ void generateRandomSection() {
     MusicSection* current = getCurrentSection();
     
     int measureCount;
-    std::cout << "How many measures to generate? (1-20): ";
-    std::cin >> measureCount;
+    cout << "How many measures to generate? (1-20): ";
+    cin >> measureCount;
     
     if (measureCount < 1 || measureCount > 20) {
-        std::cout << "Invalid number.\n";
+        cout << "Invalid number.\n";
         return;
     }
     
     srand((unsigned)time(nullptr));
-    std::vector<std::string> commonNotes = {"C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5"};
+    vector<string> commonNotes = {"C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5"};
     
     for (int i = 0; i < measureCount; ++i) {
         Measure newMeasure;
         newMeasure.measureNumber = current->measures.size() + 1;
         newMeasure.section = currentSection;
-        newMeasure.chord = "RAND" + std::to_string(i + 1);
+        newMeasure.chord = "RAND" + to_string(i + 1);
         newMeasure.duration = 300 + (rand() % 400); // Random duration between 300-700ms
         
         // Random chord size (1-4 notes)
         int noteCount = 1 + (rand() % 4);
         for (int j = 0; j < noteCount; ++j) {
             Note n;
-            std::string noteName = commonNotes[rand() % commonNotes.size()];
+            string noteName = commonNotes[rand() % commonNotes.size()];
             n.name = noteName;
             n.freq = noteFrequencies[noteName];
             n.duration = newMeasure.duration;
@@ -548,12 +543,12 @@ void generateRandomSection() {
         current->measures.push_back(newMeasure);
     }
     
-    std::cout << "Generated " << measureCount << " random measures in Section " << currentSection << "!\n";
+    cout << "Generated " << measureCount << " random measures in Section " << currentSection << "!\n";
 }
 
 int main() {
-    std::cout << "C++ Music Composer with Custom Durations\n";
-    std::cout << "=========================================\n\n";
+    cout << "C++ Music Composer with Custom Durations\n";
+    cout << "=========================================\n\n";
     
     // Initialize with Section A
     MusicSection sectionA;
@@ -572,14 +567,14 @@ int main() {
             case 4: saveSong(); break;
             case 5: loadSong(); break;
             case 6: generateRandomSection(); break;
-            case 7: std::cout << "Goodbye!\n"; break;
+            case 7: cout << "Goodbye!\n"; break;
             case 8: listAllNotes(); break;
             case 9: listCommonChords(); break;
             case 10: printMusicSheet(); break;
             case 11: addNewSection(); break;
             case 12: switchSection(); break;
             case 13: addChordByName(); break;
-            default: std::cout << "Invalid choice.\n";
+            default: cout << "Invalid choice.\n";
         }
     } while (choice != 7);
     
