@@ -18,7 +18,7 @@ struct Note {
     int freq;
     int duration;
 };
-
+//comment added because YARRRR
 struct Measure {
     string chord;
     vector<Note> notes;
