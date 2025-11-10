@@ -64,13 +64,14 @@ void showMenu() {
     cout << "4. Save song\n";
     cout << "5. Load song\n";
     cout << "6. Generate random section\n";
-    cout << "7. Exit\n";
+    cout << "7. Play Happy Birthday \n";
     cout << "8. List all available notes\n";
     cout << "9. Show common chords\n";
     cout << "10. Print music sheet\n";
     cout << "11. Add new section\n";
     cout << "12. Switch section\n";
     cout << "13. Add chord by name\n";
+    cout << "14. Exit\n";
     cout << "-------------------------------------\n";
     cout << "Current Section: " << currentSection << "\n";
     cout << "Choice: ";
@@ -259,7 +260,7 @@ void playSection(const string& sectionName) {
         for (auto& th : threads) if (th.joinable()) th.join();
 
         // Small gap between measures.
-        Sleep(100);
+        Sleep(10);
     }
     cout << "Finished Section " << sectionName << "!\n";
 }
@@ -284,7 +285,7 @@ void playEntireSong() {
                 threads.emplace_back(playNote, note.freq, note.duration);
             }
             for (auto& th : threads) if (th.joinable()) th.join();
-            Sleep(100);
+            Sleep(5);
         }
     }
     cout << "\nSong finished!\n";
@@ -344,8 +345,17 @@ void switchSection() {
 
 // Serializes all sections/measures to a simple line format.
 void saveSong() {
-    ofstream file("song_sheet.txt");
-    if (!file) { cout << "Error saving song.\n"; return; }
+    string filename;
+    cout << "Enter filename (or press Enter for song_sheet.txt): ";
+    cin.ignore();
+    getline(cin, filename);
+    
+    if (filename.empty()) {
+        filename = "song_sheet.txt";
+    }
+    
+    ofstream file(filename);
+    if (!file) { cout << "Error saving song to " << filename << "\n"; return; }
 
     for (const auto& section : songSections) {
         file << "[SECTION " << section.name << "]\n";
@@ -358,13 +368,21 @@ void saveSong() {
             file << "|" << measure.duration << "\n";
         }
     }
-    cout << "Song saved to song_sheet.txt\n";
+    cout << "Song saved to " << filename << "\n";
 }
 
-// Deserializes sections/measures from file into memory.
 void loadSong() {
-    ifstream file("song_sheet.txt");
-    if (!file) { cout << "Error loading song.\n"; return; }
+    string filename;
+    cout << "Enter filename (or press Enter for song_sheet.txt): ";
+    cin.ignore();
+    getline(cin, filename);
+    
+    if (filename.empty()) {
+        filename = "song_sheet.txt";
+    }
+    
+    ifstream file(filename);
+    if (!file) { cout << "Error loading " << filename << "\n"; return; }
 
     songSections.clear();
     string line;
@@ -403,7 +421,7 @@ void loadSong() {
             }
         }
     }
-    cout << "Song loaded! " << songSections.size() << " sections.\n";
+    cout << "Song loaded from " << filename << "! " << songSections.size() << " sections.\n";
 }
 
 // Prints selected octaves/notes with frequency values for reference.
@@ -411,7 +429,7 @@ void listAllNotes() {
     cout << "\nAll Available Notes (Octaves 0-8, format: NoteOctave, e.g., C#4, A5):\n";
     cout << "======================================================================\n";
 
-    vector<string> octaves = {"3", "4", "5", "6"};
+    vector<string> octaves = {"0","1","2","3", "4", "5", "6","7","8"};
     vector<string> noteNames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
     for (const auto& octave : octaves) {
@@ -460,4 +478,35 @@ void generateRandomSection() {
         current->measures.push_back(newMeasure);
     }
     cout << "Generated " << measureCount << " random measures in Section " << currentSection << "!\n";
+}
+
+// Plays the "Happy Birthday" melody
+void playHappyBirthday() {
+    cout << "\nPlaying Happy Birthday...\n";
+    cout << "========================\n";
+    
+    // Happy Birthday melody notes (simple version)
+    vector<pair<string, int>> melody = {
+        {"G4", 250}, {"G4", 250}, {"A4", 500}, {"G4", 500}, {"C5", 500}, {"B4", 1000},
+        {"G4", 250}, {"G4", 250}, {"A4", 500}, {"G4", 500}, {"D5", 500}, {"C5", 1000},
+        {"G4", 250}, {"G4", 250}, {"G5", 500}, {"E5", 500}, {"C5", 500}, {"B4", 500}, {"A4", 1000},
+        {"F5", 250}, {"F5", 250}, {"E5", 500}, {"C5", 500}, {"D5", 500}, {"C5", 500}
+    };
+    
+    for (const auto& note : melody) {
+        string noteName = note.first;
+        int duration = note.second;
+        
+        if (noteFrequencies.find(noteName) != noteFrequencies.end()) {
+            int freq = noteFrequencies[noteName];
+            cout << "Playing: " << noteName << " (" << duration << "ms)\n";
+            playNote(freq, duration);
+
+            Sleep(5); // brief pause between notes
+        } else {
+            cout << "Note not found: " << noteName << "\n";
+        }
+    }
+    
+    cout << "Finished playing Happy Birthday!\n";
 }

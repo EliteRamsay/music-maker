@@ -103,4 +103,6 @@ void listAllNotes();
 // Generates a number of random measures in the current section.
 void generateRandomSection();
 
+void playHappyBirthday();
+
 #endif // MUSIC_H
