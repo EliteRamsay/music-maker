@@ -260,7 +260,7 @@ void playSection(const string& sectionName) {
         for (auto& th : threads) if (th.joinable()) th.join();
 
         // Small gap between measures.
-        Sleep(10);
+        Sleep(1);
     }
     cout << "Finished Section " << sectionName << "!\n";
 }
@@ -285,7 +285,7 @@ void playEntireSong() {
                 threads.emplace_back(playNote, note.freq, note.duration);
             }
             for (auto& th : threads) if (th.joinable()) th.join();
-            Sleep(5);
+            Sleep(1);
         }
     }
     cout << "\nSong finished!\n";
@@ -502,7 +502,7 @@ void playHappyBirthday() {
             cout << "Playing: " << noteName << " (" << duration << "ms)\n";
             playNote(freq, duration);
 
-            Sleep(5); // brief pause between notes
+            Sleep(1); // brief pause between notes
         } else {
             cout << "Note not found: " << noteName << "\n";
         }
