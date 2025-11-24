@@ -11,7 +11,7 @@ using namespace std;
 int main(int argc, char* argv[]) {
     // Initial context and user-facing header.
     cout << "C++ Music Composer with Custom Durations\n";
-    cout << "=========================================\n\n";
+    cout << string(50, '=') << "\n\n";
 
     // Handle drag & drop - if a file is dragged onto the executable
     if (argc > 1) {
