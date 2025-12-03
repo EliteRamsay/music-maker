@@ -375,7 +375,8 @@ void playSection(const string &sectionName)
         if (stopPlayback) break;
         
         while (playbackState == STATE_PAUSED) {
-            Sleep(100);
+            Sleep(50);
+            checkPlaybackControl();  // Fixed: Added checkPlaybackControl()
             if (stopPlayback) break;
         }
         if (stopPlayback) break;
@@ -444,7 +445,8 @@ void playEntireSong()
             if (stopPlayback) break;
             
             while (playbackState == STATE_PAUSED) {
-                Sleep(100);
+                Sleep(50);
+                checkPlaybackControl();  // Fixed: Added checkPlaybackControl()
                 if (stopPlayback) break;
             }
             if (stopPlayback) break;
@@ -746,7 +748,8 @@ void playHappyBirthday()
         if (stopPlayback) break;
         
         while (playbackState == STATE_PAUSED) {
-            Sleep(100);
+            Sleep(50);
+            checkPlaybackControl();  // Fixed: Added checkPlaybackControl()
             if (stopPlayback) break;
         }
         if (stopPlayback) break;
@@ -852,14 +855,17 @@ void stopPlaybackCommand() {
 void checkPlaybackControl() {
     if (_kbhit()) {
         char ch = _getch();
-        switch(tolower(ch)) {
+        switch(ch) {  // Fixed: Handle both uppercase and lowercase
             case 'p': 
+            case 'P':
                 pausePlayback();
                 break;
             case 'r':
+            case 'R':
                 resumePlayback();
                 break;
             case 's':
+            case 'S':
                 stopPlaybackCommand();
                 break;
         }
