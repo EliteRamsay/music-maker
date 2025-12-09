@@ -2,8 +2,23 @@
 // Implementation for the terminal music composer: data, helpers, UI actions, and playback.
 
 #include "music.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <algorithm>
+#include <iomanip>
+#include <ctime>
+#include <cstdlib>
+#include <windows.h>
+#include <mmsystem.h>
+#include <conio.h>
+
+#pragma comment(lib, "winmm.lib")
 
 using namespace std;
+
+// MIDI handle
+HMIDIOUT hMidiOut = NULL;
 
 // ===== Global state =====
 vector<MusicSection> songSections;
@@ -12,10 +27,8 @@ PlaybackState playbackState = STATE_STOPPED;
 int currentInstrument = INSTRUMENT_PIANO;
 bool stopPlayback = false;
 
-// MIDI handle
-HMIDIOUT hMidiOut = NULL;
-
 // ===== MIDI Implementation =====
+// Initialize MIDI output device
 void initMIDI() {
     if (hMidiOut == NULL) {
         midiOutOpen(&hMidiOut, 0, 0, 0, CALLBACK_NULL);
@@ -23,6 +36,7 @@ void initMIDI() {
     }
 }
 
+// Close MIDI output device
 void closeMIDI() {
     if (hMidiOut != NULL) {
         midiOutClose(hMidiOut);
@@ -30,30 +44,35 @@ void closeMIDI() {
     }
 }
 
+// Set the current MIDI instrument (program change)
 void setInstrument(int instrument) {
     if (hMidiOut != NULL) {
         midiOutShortMsg(hMidiOut, 0xC0 | (instrument << 8));
     }
 }
 
+// Play a single MIDI note (note on message)
 void playMIDINote(int note, int velocity, int channel) {
     if (hMidiOut != NULL) {
         midiOutShortMsg(hMidiOut, 0x90 | channel | (note << 8) | (velocity << 16));
     }
 }
 
+// Stop a single MIDI note (note off message)
 void stopMIDINote(int note, int channel) {
     if (hMidiOut != NULL) {
         midiOutShortMsg(hMidiOut, 0x80 | channel | (note << 8));
     }
 }
 
+// Play multiple MIDI notes simultaneously (chord)
 void playMIDIChord(const vector<int>& notes, int velocity, int channel) {
     for (int note : notes) {
         playMIDINote(note, velocity, channel);
     }
 }
 
+// Stop multiple MIDI notes simultaneously
 void stopMIDIChord(const vector<int>& notes, int channel) {
     for (int note : notes) {
         stopMIDINote(note, channel);
@@ -92,13 +111,7 @@ map<string, int> noteToMidi = {
     {"G8", 115}, {"G#8", 116}, {"A8", 117}, {"A#8", 118}, {"B8", 119}
 };
 
-// Keep frequency mapping for compatibility
-map<string, int> noteFrequencies = {
-    {"C4", 262}, {"C#4", 277}, {"D4", 294}, {"D#4", 311}, {"E4", 330}, {"F4", 349}, 
-    {"F#4", 370}, {"G4", 392}, {"G#4", 415}, {"A4", 440}, {"A#4", 466}, {"B4", 494},
-    {"C5", 523}, {"C#5", 554}, {"D5", 587}, {"D#5", 622}, {"E5", 659}, {"F5", 698}, 
-    {"F#5", 740}, {"G5", 784}, {"G#5", 831}, {"A5", 880}, {"A#5", 932}, {"B5", 988}
-};
+
 
 // Named chord spellings used to quickly build a measure.
 map<string, vector<string>> chordDefinitions = {
@@ -122,9 +135,9 @@ map<string, vector<string>> chordDefinitions = {
     {"B7", {"B4", "D#5", "F#5", "A5"}}};
 
 // ===== UI / Menu =====
+// Display the main menu with all available options
 void showMenu()
 {
-    // Displays available operations and current context.
     cout << "\n==== C++ Terminal Music Composer (MIDI Enhanced) ====\n";
     cout << "1. Add measure to current section\n";
     cout << "2. Play current section\n";
@@ -163,7 +176,7 @@ void showMenu()
     cout << "Choice: ";
 }
 
-// Returns the active section; creates a new empty one if not present.
+// Get pointer to the active section; creates it if it doesn't exist
 MusicSection *getCurrentSection()
 {
     for (auto &section : songSections)
@@ -178,9 +191,9 @@ MusicSection *getCurrentSection()
 }
 
 // ===== Presentation helpers =====
+// Print a formatted view of all sections, measures, and notes
 void printMusicSheet()
 {
-    // Outputs a tabular view of all sections/measures/notes.
     if (songSections.empty())
     {
         cout << "No music to display!\n";
@@ -214,7 +227,7 @@ void printMusicSheet()
     cout << string(47, '=') << "\n";
 }
 
-// Lists supported chord names for reference.
+// Display all available predefined chords
 void listCommonChords()
 {
     cout << "\nCommon Chords Available:\n";
@@ -229,7 +242,7 @@ void listCommonChords()
     cout << "\n\nUse these chord names when adding measures.\n";
 }
 
-// Adds a measure by selecting a chord name from chordDefinitions.
+// Add a measure by selecting from predefined chords
 void addChordByName()
 {
     listCommonChords();
@@ -262,7 +275,6 @@ void addChordByName()
     {
         Note n;
         n.name = noteName;
-        n.freq = noteFrequencies[noteName];
         n.midiNote = noteToMidi[noteName];
         n.duration = duration;
         newMeasure.notes.push_back(n);
@@ -273,7 +285,7 @@ void addChordByName()
          << ", Measure " << newMeasure.measureNumber << " (" << duration << "ms)\n";
 }
 
-// Adds a measure by manual entry (free choice of chord label and note list).
+// Add a measure by manually entering chord name and notes
 void addMeasure()
 {
     MusicSection *current = getCurrentSection();
@@ -314,7 +326,6 @@ void addMeasure()
         {
             Note n;
             n.name = noteName;
-            n.freq = noteFrequencies[noteName];
             n.midiNote = noteToMidi[noteName];
             n.duration = newMeasure.duration;
             newMeasure.notes.push_back(n);
@@ -336,15 +347,9 @@ void addMeasure()
          << " (" << newMeasure.duration << "ms)\n";
 }
 
-// Plays a single tone using MIDI; otherwise sleeps for the duration.
-void playNote(int frequency, int duration)
-{
-    // For compatibility, we'll use the MIDI system
-    // This function is kept for backward compatibility
-    Sleep(static_cast<DWORD>(duration));
-}
 
-// Iterates measures in a named section and plays notes (chord tones in parallel).
+
+// Play all measures in a specific section with real-time playback control
 void playSection(const string &sectionName)
 {
     MusicSection *section = nullptr;
@@ -419,7 +424,7 @@ void playSection(const string &sectionName)
     }
 }
 
-// Plays all sections in stored order.
+// Play all sections in the song sequentially
 void playEntireSong()
 {
     if (songSections.empty())
@@ -490,7 +495,7 @@ void playEntireSong()
     }
 }
 
-// Creates a new labeled section and switches context to it.
+// Create a new section or switch to existing one
 void addNewSection()
 {
     cout << "Enter new section name (single character, e.g., A, B, C): ";
@@ -521,7 +526,7 @@ void addNewSection()
     cout << "Created and switched to Section " << newSection << "\n";
 }
 
-// Switches currentSection to a chosen existing section.
+// Switch to an existing section
 void switchSection()
 {
     if (songSections.empty())
@@ -551,7 +556,7 @@ void switchSection()
     cout << "Section " << sectionName << " not found.\n";
 }
 
-// Serializes all sections/measures to a simple line format.
+// Save the entire song to a text file
 void saveSong()
 {
     string filename;
@@ -589,6 +594,7 @@ void saveSong()
     cout << "Song saved to " << filename << "\n";
 }
 
+// Load a song from a text file
 void loadSong()
 {
     string filename;
@@ -644,7 +650,6 @@ void loadSong()
                     {
                         Note n;
                         n.name = noteName;
-                        n.freq = noteFrequencies[noteName];
                         n.midiNote = noteToMidi[noteName];
                         n.duration = measure.duration;
                         measure.notes.push_back(n);
@@ -715,7 +720,6 @@ void generateRandomSection()
             Note n;
             string noteName = commonNotes[rand() % commonNotes.size()];
             n.name = noteName;
-            n.freq = noteFrequencies[noteName];
             n.midiNote = noteToMidi[noteName];
             n.duration = newMeasure.duration;
             newMeasure.notes.push_back(n);
@@ -725,7 +729,7 @@ void generateRandomSection()
     cout << "Generated " << measureCount << " random measures in Section " << currentSection << "!\n";
 }
 
-// Plays the "Happy Birthday" melody using MIDI
+// Play the Happy Birthday melody with real-time playback control
 void playHappyBirthday()
 {
     cout << "\nPlaying Happy Birthday...\n";
@@ -784,7 +788,8 @@ void playHappyBirthday()
     }
 }
 
-// New functions for enhanced features
+// ===== Instrument and Playback Control =====
+// Display list of available MIDI instruments
 void showInstruments() {
     cout << "\nAvailable Instruments:\n";
     cout << string(25, '=') << "\n";
@@ -800,6 +805,7 @@ void showInstruments() {
     cout << string(25, '=') << "\n";
 }
 
+// Change the current MIDI instrument
 void changeInstrument() {
     showInstruments();
     cout << "Enter instrument number: ";
@@ -828,6 +834,7 @@ void changeInstrument() {
     }
 }
 
+// Pause the current playback
 void pausePlayback() {
     if (playbackState == STATE_PLAYING) {
         playbackState = STATE_PAUSED;
@@ -837,6 +844,7 @@ void pausePlayback() {
     }
 }
 
+// Resume paused playback
 void resumePlayback() {
     if (playbackState == STATE_PAUSED) {
         playbackState = STATE_PLAYING;
@@ -846,12 +854,14 @@ void resumePlayback() {
     }
 }
 
+// Stop the current playback
 void stopPlaybackCommand() {
     stopPlayback = true;
     playbackState = STATE_STOPPED;
     cout << "Playback stopping...\n";
 }
 
+// Check for keyboard input to control playback (p=pause, r=resume, s=stop)
 void checkPlaybackControl() {
     if (_kbhit()) {
         char ch = _getch();
