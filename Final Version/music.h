@@ -2,33 +2,18 @@
 #ifndef MUSIC_H
 #define MUSIC_H
 
-// Public interface and core data types for the terminal music composer.
-// Split into: (1) data structures, (2) globals (declared here, defined in music.cpp),
-// and (3) function declarations used by main.cpp and other translation units.
+// Public interface for the terminal music composer.
+// Provides MIDI-based playback with multiple instruments and real-time control.
 
-#include <iostream>
-#include <vector>
 #include <string>
-#include <fstream>
-#include <windows.h>
-#include <ctime>
-#include <cstdlib>
+#include <vector>
 #include <map>
-#include <thread>
-#include <sstream>
-#include <algorithm>
-#include <iomanip>
-#include <mmsystem.h>
-#include <conio.h>
-
-#pragma comment(lib, "winmm.lib")
 
 using namespace std;
 
-// MIDI Instrument Constants
+// ===== Enums =====
 enum MIDIInstruments {
     INSTRUMENT_PIANO = 0,
-    INSTRUMENT_SYNTH = 80,
     INSTRUMENT_ORGAN = 16,
     INSTRUMENT_GUITAR = 24,
     INSTRUMENT_BASS = 32,
@@ -36,131 +21,85 @@ enum MIDIInstruments {
     INSTRUMENT_TRUMPET = 56,
     INSTRUMENT_SAXOPHONE = 65,
     INSTRUMENT_FLUTE = 73,
-    INSTRUMENT_DRUM_KIT = 0  // Channel 10 for drums
+    INSTRUMENT_SYNTH = 80
 };
 
-// Playback control states
 enum PlaybackState {
     STATE_STOPPED,
     STATE_PLAYING,
     STATE_PAUSED
 };
 
-// Represents a single tone.
-// name: symbolic note (e.g., "A4"); freq: frequency in Hz; duration: milliseconds.
+// ===== Data Structures =====
+// Represents a single musical note (e.g., "A4", "C#5")
 struct Note {
-    string name;
-    int freq;
-    int duration;
-    int midiNote;  // MIDI note number (0-127)
+    string name;      // Note name (e.g., "A4")
+    int midiNote;     // MIDI note number (0-127)
+    int duration;     // Duration in milliseconds
 };
 
-// Represents a musical measure.
-// chord: label for the harmony; notes: tones played in the measure;
-// measureNumber: order within the section; section: owning section label;
-// duration: default duration for notes in this measure (ms).
+// Represents a musical measure containing one or more notes
 struct Measure {
-    string chord;
-    vector<Note> notes;
-    int measureNumber;
-    string section;
-    int duration;
+    string chord;           // Chord label (e.g., "CMAJ7", "AMIN")
+    vector<Note> notes;     // Notes played in this measure
+    int measureNumber;      // Position within the section
+    string section;         // Parent section name
+    int duration;           // Default duration for notes (ms)
 };
 
-// A labeled section of a song (e.g., "A", "B") containing ordered measures.
+// A labeled section of a song (e.g., "A", "B") containing ordered measures
 struct MusicSection {
-    string name;
-    vector<Measure> measures;
+    string name;              // Section label (e.g., "A", "B")
+    vector<Measure> measures; // Ordered list of measures
 };
 
-// ===== Global state (defined in music.cpp) =====
-// Mapping from note names (e.g., "C#4") to frequencies in Hz.
-extern map<string, int> noteFrequencies;
-// Mapping from note names to MIDI note numbers
-extern map<string, int> noteToMidi;
-// Named chord → list of note names that form the chord.
-extern map<string, vector<string>> chordDefinitions;
-// Ordered collection of all sections in the song.
-extern vector<MusicSection> songSections;
-// Name of the active section (e.g., "A").
-extern string currentSection;
-// Current playback state
-extern PlaybackState playbackState;
-// Current instrument
-extern int currentInstrument;
-// Flag to stop playback
-extern bool stopPlayback;
+// ===== Global State (defined in music.cpp) =====
+extern map<string, int> noteToMidi;                          // Maps note names to MIDI numbers
+extern map<string, vector<string>> chordDefinitions;         // Predefined chord spellings
+extern vector<MusicSection> songSections;                    // All sections in the song
+extern string currentSection;                                // Active section name
+extern PlaybackState playbackState;                          // Current playback state
+extern int currentInstrument;                                // Current MIDI instrument
+extern bool stopPlayback;                                    // Flag to stop playback
 
 // ===== MIDI Functions =====
-// Initialize MIDI
-void initMIDI();
-// Close MIDI
-void closeMIDI();
-// Set MIDI instrument
-void setInstrument(int instrument);
-// Play a MIDI note
-void playMIDINote(int note, int velocity = 127, int channel = 0);
-// Stop a MIDI note
-void stopMIDINote(int note, int channel = 0);
-// Play multiple MIDI notes simultaneously
-void playMIDIChord(const vector<int>& notes, int velocity = 127, int channel = 0);
-// Stop multiple MIDI notes simultaneously
-void stopMIDIChord(const vector<int>& notes, int channel = 0);
+void initMIDI();                                                      // Initialize MIDI system
+void closeMIDI();                                                     // Close MIDI system
+void setInstrument(int instrument);                                   // Set MIDI instrument
+void playMIDINote(int note, int velocity = 127, int channel = 0);    // Play a single MIDI note
+void stopMIDINote(int note, int channel = 0);                         // Stop a single MIDI note
+void playMIDIChord(const vector<int>& notes, int velocity = 127, int channel = 0);  // Play multiple notes simultaneously
+void stopMIDIChord(const vector<int>& notes, int channel = 0);        // Stop multiple notes simultaneously
 
-// ===== UI / Control =====
-// Prints the text menu and shows current section.
-void showMenu();
+// ===== Composition Functions =====
+void addMeasure();                  // Add a measure by manually entering notes
+void addChordByName();              // Add a measure by selecting a predefined chord
+void addNewSection();               // Create a new section and switch to it
+void switchSection();               // Switch to an existing section
+void generateRandomSection();       // Generate random measures in current section
 
-// Returns pointer to the active section; creates it if missing.
-MusicSection* getCurrentSection();
+// ===== Playback Functions =====
+void playSection(const string& sectionName);  // Play all measures in a specific section
+void playEntireSong();                        // Play all sections in order
+void playHappyBirthday();                     // Play the Happy Birthday melody
+void pausePlayback();                         // Pause current playback
+void resumePlayback();                        // Resume paused playback
+void stopPlaybackCommand();                   // Stop current playback
+void checkPlaybackControl();                  // Check for keyboard input during playback
 
-// Pretty-prints all sections and measures to stdout.
-void printMusicSheet();
+// ===== UI Functions =====
+void showMenu();                    // Display the main menu
+void printMusicSheet();             // Print all sections and measures
+void listCommonChords();            // List available predefined chords
+void listAllNotes();                // List all available notes (octaves 0-8)
+void changeInstrument();            // Change the current MIDI instrument
+void showInstruments();             // Display available instruments
 
-// Lists supported chord names available for quick entry.
-void listCommonChords();
+// ===== File I/O Functions =====
+void saveSong();                    // Save song to a text file
+void loadSong();                    // Load song from a text file
 
-// Adds a full measure by selecting a known chord name.
-void addChordByName();
-
-// Adds a measure by manually entering chord, duration, and notes.
-void addMeasure();
-
-// Plays a single note or rests for duration if frequency is out of range.
-void playNote(int frequency, int duration);
-
-// Plays all measures in the requested section by name.
-void playSection(const string& sectionName);
-
-// Plays all sections in order.
-void playEntireSong();
-
-// Creates a new section (e.g., "B") and switches to it.
-void addNewSection();
-
-// Switches currentSection to an existing section.
-void switchSection();
-
-// Saves all sections/measures to a simple text file.
-void saveSong();
-
-// Loads sections/measures from a previously saved text file.
-void loadSong();
-
-// Lists a curated range of notes with their frequencies.
-void listAllNotes();
-
-// Generates a number of random measures in the current section.
-void generateRandomSection();
-
-void playHappyBirthday();
-
-// New functions for enhanced features
-void changeInstrument();
-void showInstruments();
-void pausePlayback();
-void resumePlayback();
-void stopPlaybackCommand();
-void checkPlaybackControl();
+// ===== Helper Functions =====
+MusicSection* getCurrentSection();  // Get pointer to active section (creates if missing)
 
 #endif // MUSIC_H
